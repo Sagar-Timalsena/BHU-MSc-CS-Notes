@@ -1,0 +1,27 @@
+1. Write a class Student with fields name and age. Create a constructor that uses the this keyword to distinguish between instance variables and parameters.
+2. Create a class Rectangle with two constructors: one that accepts both width and height, and another that only accepts width and sets a default height. Use the this () constructor chaining to avoid redundancy.
+3. Write a class Chain where methods step1(), step2(), and step3 () return this to allow method chaining.
+4. Create a parent class Animal with a method makeSound() and a subclass Dog that overrides this method. Use the super keyword to call the parent class's method in the overridden version.
+5. Write a class Person with a constructor that accepts name and age. Create a subclass Employee that accepts name, age, and salary, and use super() to initialize the name and age.
+6. In the class Vehicle with a method move(), create a subclass Car that overrides move(). Use super.move() to call the superclass version inside the overridden method.
+7. Write a class Parent with a method display(), and a subclass Child with a constructor that uses super() to call the parent class constructor. Use both super.display() and this.display() in the child class.
+8. Create a class Building with overloaded constructors. Then create a class House that extends Building, and use super() to call different constructors from the superclass based on input parameters.
+9. Create a class with an inner class and use this to refer to the outer class's instance variables or methods.
+10.Implement a Human class with two constructors. Create a Student class that calls both the Hum an constructors in different ways using super().
+
+
+
+Lab3
+
+1. Write a method that takes an integer array as input and returns a new array with the elements in reverse order.
+2. Create a method that accepts an array of integers and returns the maximum and minimum values found in the array.
+3. Write a method that checks if there are any duplicate elements in an integer array. Return true if duplicates exist, otherwise return false.
+4. Create a method that merges two sorted integer arrays into a single sorted
+array.
+5. Write a method that rotates an array to the right by a given number of steps.
+6. Write a method that checks whether a given string is a palindrome (reads the same forwards and backwards).
+7. Create a method that counts the number of vowels and consonants in a given string.
+8. Write a method that reverses the characters in a given string.
+9. Create a method that returns the first non-repeated character in a string. If there are no non-repeated characters, return a special value (like null).
+10. Write a method that checks whether two strings are anagrams of each other (contain the same characters in a different order).
+11. Create a method that counts how many times a given substring appears in a string.
