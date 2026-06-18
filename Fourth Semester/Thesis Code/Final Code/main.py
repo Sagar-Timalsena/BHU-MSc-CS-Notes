@@ -1,335 +1,530 @@
 # =========================================================
-# PROOF OF WORK (PoW) CONSENSUS
-# FOR CDAM & MDAM
+# MULTI-SERVER CONNECTIVITY AWARE RESOURCE ALLOCATION
 # =========================================================
 
-import hashlib
-import time
+# =========================================================
+# COUNT CONNECTED SERVERS FOR EACH MINER
+# =========================================================
 import numpy as np
+connected_server_count = np.sum(
 
-# =========================================================
-# BLOCK CLASS
-# =========================================================
+    connectivity,
 
-class Block:
-
-    def __init__(
-
-        self,
-        index,
-        timestamp,
-        data,
-        previous_hash
-
-    ):
-
-        self.index = index
-
-        self.timestamp = timestamp
-
-        self.data = data
-
-        self.previous_hash = previous_hash
-
-        self.nonce = 0
-
-        self.hash = self.calculate_hash()
-
-    # =====================================================
-    # HASH FUNCTION
-    # =====================================================
-
-    def calculate_hash(self):
-
-        block_string = (
-
-            str(self.index) +
-
-            str(self.timestamp) +
-
-            str(self.data) +
-
-            str(self.previous_hash) +
-
-            str(self.nonce)
-
-        )
-
-        return hashlib.sha256(
-
-            block_string.encode()
-
-        ).hexdigest()
-
-# =========================================================
-# PROOF OF WORK FUNCTION
-# =========================================================
-
-def proof_of_work(
-
-    block,
-    difficulty
-
-):
-
-    target = "0" * difficulty
-
-    start_time = time.time()
-
-    while (
-
-        block.hash[:difficulty] != target
-
-    ):
-
-        block.nonce += 1
-
-        block.hash = block.calculate_hash()
-
-    mining_time = (
-
-        time.time() - start_time
-
-    )
-
-    return (
-
-        block.hash,
-        block.nonce,
-        mining_time
-
-    )
-
-# =========================================================
-# BLOCKCHAIN
-# =========================================================
-
-blockchain = []
-
-# =========================================================
-# GENESIS BLOCK
-# =========================================================
-
-genesis_block = Block(
-
-    0,
-    time.time(),
-    "Genesis Block",
-    "0"
+    axis=1
 
 )
 
-blockchain.append(genesis_block)
-
 # =========================================================
-# PoW PARAMETERS
+# CREATE MINER CONNECTIVITY INFORMATION
 # =========================================================
 
-difficulty = 4
+miner_connectivity_info = []
+
+for miner in range(NUM_MINERS):
+
+    connected_servers = []
+
+    for server in range(NUM_SERVERS):
+
+        if connectivity[miner][server] == 1:
+
+            connected_servers.append(
+
+                servers["Server_ID"].values[server]
+
+            )
+
+    miner_connectivity_info.append({
+
+        "Miner_ID":
+
+        miners["Miner_ID"].values[miner],
+
+        "Connected_Server_Count":
+
+        connected_server_count[miner],
+
+        "Connected_Servers":
+
+        ",".join(connected_servers)
+
+    })
 
 # =========================================================
-# STORE PoW RESULTS
+# SAVE CONNECTIVITY INFORMATION
 # =========================================================
 
-pow_mining_time_history = []
+connectivity_info_df = pd.DataFrame(
 
-pow_nonce_history = []
+    miner_connectivity_info
 
-pow_hashrate_history = []
+)
 
-pow_success_history = []
+connectivity_info_df.to_excel(
 
-# =========================================================
-# START PoW CONSENSUS
-# =========================================================
-
-print("\n====================================")
-print("STARTING PoW CONSENSUS")
-print("====================================")
-
-for round_num in range(TOTAL_ROUNDS):
-
-    current_time = (
-        round_num + 1
-    ) * UPDATE_INTERVAL
-
-    print("\n====================================")
-    print(f"TIME STEP: {current_time} sec")
-    print("====================================")
-
-    # =====================================================
-    # PREVIOUS BLOCK
-    # =====================================================
-
-    previous_block = blockchain[-1]
-
-    # =====================================================
-    # CREATE NEW BLOCK
-    # =====================================================
-
-    block_data = {
-
-        "Connected_Miners": connected_miners_history[round_num],
-
-        "CDAM_Winners": cdam_winner_history[round_num],
-
-        "MDAM_Winners": mdam_winner_history[round_num],
-
-        "CDAM_Social_Welfare":
-
-            cdam_social_welfare_history[round_num],
-
-        "MDAM_Social_Welfare":
-
-            mdam_social_welfare_history[round_num]
-
-    }
-
-    new_block = Block(
-
-        round_num + 1,
-
-        time.time(),
-
-        block_data,
-
-        previous_block.hash
-
-    )
-
-    # =====================================================
-    # RUN PoW
-    # =====================================================
-
-    (
-        mined_hash,
-        nonce,
-        mining_time
-
-    ) = proof_of_work(
-
-        new_block,
-        difficulty
-
-    )
-
-    # =====================================================
-    # ADD BLOCK TO BLOCKCHAIN
-    # =====================================================
-
-    blockchain.append(new_block)
-
-    # =====================================================
-    # HASHRATE
-    # =====================================================
-
-    hashrate = nonce / (
-
-        mining_time + 0.0001
-
-    )
-
-    # =====================================================
-    # SUCCESS
-    # =====================================================
-
-    success = 1
-
-    # =====================================================
-    # STORE RESULTS
-    # =====================================================
-
-    pow_mining_time_history.append(
-        mining_time
-    )
-
-    pow_nonce_history.append(
-        nonce
-    )
-
-    pow_hashrate_history.append(
-        hashrate
-    )
-
-    pow_success_history.append(
-        success
-    )
-
-    # =====================================================
-    # PRINT RESULTS
-    # =====================================================
-
-    print(
-        f"Block Index: {new_block.index}"
-    )
-
-    print(
-        f"Nonce: {nonce}"
-    )
-
-    print(
-        f"Hash: {mined_hash}"
-    )
-
-    print(
-        f"Mining Time: {round(mining_time, 4)} sec"
-    )
-
-    print(
-        f"Hashrate: {round(hashrate, 2)}"
-    )
-
-# =========================================================
-# SAVE PoW METRICS
-# =========================================================
-
-pow_df = pd.DataFrame({
-
-    "Time": time_history,
-
-    "Mining_Time": pow_mining_time_history,
-
-    "Nonce": pow_nonce_history,
-
-    "Hashrate": pow_hashrate_history,
-
-    "Consensus_Success": pow_success_history
-
-})
-
-pow_df.to_csv(
-
-    "pow_metrics.csv",
+    f"Allocation_Result/miner_connectivity_t{current_time}.xlsx",
 
     index=False
 
 )
 
 # =========================================================
-# PoW GRAPH FUNCTION
+# PRIORITY CALCULATION
 # =========================================================
 
-def draw_pow_graph(
+priority = (
 
+    miners["Bid_Value"].values
+
+    /
+
+    (
+
+        miners["CPU_Demand"].values
+
+        *
+
+        miners["Storage_Demand"].values
+
+        *
+
+        miners["Execution_Time"].values
+
+        + 0.001
+
+    )
+
+)
+
+# =========================================================
+# FINAL SCORE
+# =========================================================
+#
+# Miner having more connected servers
+# gets higher score
+#
+# FinalScore =
+#
+# ConnectedServerCount × Priority
+#
+# =========================================================
+
+final_score = (
+
+    connected_server_count
+
+    *
+
+    priority
+
+)
+
+# =========================================================
+# SORT MINERS
+# =========================================================
+
+sorted_miners = np.argsort(
+
+    -final_score
+
+)
+
+# =========================================================
+# SAVE SORTED MINER LIST
+# =========================================================
+
+sorted_miner_list = []
+
+for rank, miner in enumerate(sorted_miners):
+
+    connected_servers = []
+
+    for server in range(NUM_SERVERS):
+
+        if connectivity[miner][server] == 1:
+
+            connected_servers.append(
+
+                servers["Server_ID"].values[server]
+
+            )
+
+    sorted_miner_list.append({
+
+        "Rank": rank + 1,
+
+        "Miner_ID":
+
+        miners["Miner_ID"].values[miner],
+
+        "Connected_Server_Count":
+
+        connected_server_count[miner],
+
+        "Connected_Servers":
+
+        ",".join(connected_servers),
+
+        "Priority":
+
+        priority[miner],
+
+        "Final_Score":
+
+        final_score[miner]
+
+    })
+
+sorted_df = pd.DataFrame(
+
+    sorted_miner_list
+
+)
+
+sorted_df.to_excel(
+
+    f"Allocation_Result/sorted_miners_t{current_time}.xlsx",
+
+    index=False
+
+)
+
+# =========================================================
+# RESOURCE ALLOCATION
+# =========================================================
+
+winners = 0
+
+social_welfare = 0
+
+winner_miners = []
+
+runnerup_miners = []
+
+for miner in sorted_miners:
+
+    allocated = False
+
+    # =====================================================
+    # FIND ALL CONNECTED SERVERS
+    # =====================================================
+
+    possible_servers = []
+
+    for server in range(NUM_SERVERS):
+
+        if connectivity[miner][server] == 1:
+
+            possible_servers.append(server)
+
+    # =====================================================
+    # SORT SERVERS BY AVAILABLE CPU
+    # =====================================================
+
+    possible_servers = sorted(
+
+        possible_servers,
+
+        key=lambda x: remaining_cpu[x],
+
+        reverse=True
+
+    )
+
+    # =====================================================
+    # TRY ALLOCATION
+    # =====================================================
+
+    for server in possible_servers:
+
+        if (
+
+            remaining_cpu[server]
+
+            >=
+
+            miners["CPU_Demand"].values[miner]
+
+            and
+
+            remaining_storage[server]
+
+            >=
+
+            miners["Storage_Demand"].values[miner]
+
+        ):
+
+            # =================================================
+            # RESOURCE ASSIGNMENT
+            # =================================================
+
+            remaining_cpu[server] -= (
+
+                miners["CPU_Demand"].values[miner]
+
+            )
+
+            remaining_storage[server] -= (
+
+                miners["Storage_Demand"].values[miner]
+
+            )
+
+            winners += 1
+
+            social_welfare += (
+
+                miners["Bid_Value"].values[miner]
+
+            )
+
+            allocated = True
+
+            # =================================================
+            # STORE WINNER
+            # =================================================
+
+            winner_miners.append({
+
+                "Time": current_time,
+
+                "Miner_ID":
+
+                miners["Miner_ID"].values[miner],
+
+                "Allocated_Server":
+
+                servers["Server_ID"].values[server],
+
+                "Connected_Server_Count":
+
+                connected_server_count[miner],
+
+                "Connected_Servers":
+
+                ",".join([
+
+                    servers["Server_ID"].values[s]
+
+                    for s in possible_servers
+
+                ]),
+
+                "Priority":
+
+                priority[miner],
+
+                "Final_Score":
+
+                final_score[miner],
+
+                "Bid_Value":
+
+                miners["Bid_Value"].values[miner],
+
+                "CPU_Demand":
+
+                miners["CPU_Demand"].values[miner],
+
+                "Storage_Demand":
+
+                miners["Storage_Demand"].values[miner],
+
+                "Execution_Time":
+
+                miners["Execution_Time"].values[miner]
+
+            })
+
+            break
+
+    # =====================================================
+    # RUNNER-UP
+    # =====================================================
+
+    if allocated == False:
+
+        runnerup_miners.append({
+
+            "Time": current_time,
+
+            "Miner_ID":
+
+            miners["Miner_ID"].values[miner],
+
+            "Connected_Server_Count":
+
+            connected_server_count[miner],
+
+            "Final_Score":
+
+            final_score[miner],
+
+            "Reason":
+
+            "No Available Resource"
+
+        })
+
+# =========================================================
+# SAVE WINNER LIST
+# =========================================================
+
+winner_df = pd.DataFrame(
+
+    winner_miners
+
+)
+
+winner_df.to_excel(
+
+    f"Allocation_Result/winners_t{current_time}.xlsx",
+
+    index=False
+
+)
+
+# =========================================================
+# SAVE RUNNER-UP LIST
+# =========================================================
+
+runnerup_df = pd.DataFrame(
+
+    runnerup_miners
+
+)
+
+runnerup_df.to_excel(
+
+    f"Allocation_Result/runnerups_t{current_time}.xlsx",
+
+    index=False
+
+)
+
+# =========================================================
+# PRINT RESULTS
+# =========================================================
+
+print("\n====================================")
+
+print("MULTI-SERVER CONNECTIVITY ALLOCATION")
+
+print("====================================")
+
+print(f"\nWinner Miners: {winners}")
+
+print(f"Social Welfare: {social_welfare}")
+
+print(
+
+    f"Average Connected Servers:",
+
+    round(
+
+        np.mean(connected_server_count),
+
+        2
+
+    )
+
+)
+
+# =========================================================
+# IMPORTANT FORMULAS
+# =========================================================
+
+# ConnectedServerCount =
+#
+# Sum of all connected servers
+#
+# ---------------------------------------------------------
+#
+# FinalScore =
+#
+# ConnectedServerCount × Priority
+#
+# ---------------------------------------------------------
+#
+# Priority =
+#
+# Bid
+# -----------------------------
+# CPU × Storage × ExecutionTime
+#
+# =========================================================
+
+
+
+# =========================================================
+# GRAPH GENERATION FOR ALL COMPARISON FACTORS
+# =========================================================
+
+# =========================================================
+# IMPORT LIBRARIES
+# =========================================================
+
+import pandas as pd
+import matplotlib.pyplot as plt
+import numpy as np
+import os
+
+# =========================================================
+# CREATE GRAPH FOLDER
+# =========================================================
+
+os.makedirs(
+
+    "Comparison_Graphs",
+
+    exist_ok=True
+
+)
+
+# =========================================================
+# LOAD FINAL RESULT FILE
+# =========================================================
+
+results = pd.read_excel(
+
+    "Allocation_Result/final_results.xlsx"
+
+)
+
+# =========================================================
+# TIME AXIS
+# =========================================================
+
+time_axis = results["Time"]
+
+# =========================================================
+# GRAPH FUNCTION
+# =========================================================
+
+def draw_graph(
+
+    x,
     y,
+    xlabel,
     ylabel,
     title,
     filename
 
 ):
 
-    plt.figure(figsize=(10, 6))
+    plt.figure(figsize=(12,6))
 
     plt.plot(
 
-        time_history,
+        x,
         y,
         marker='o',
         linewidth=2
 
     )
 
-    plt.xlabel("Time (seconds)")
+    plt.xlabel(xlabel)
 
     plt.ylabel(ylabel)
 
@@ -337,68 +532,376 @@ def draw_pow_graph(
 
     plt.grid(True)
 
+    plt.tight_layout()
+
     plt.savefig(
 
-        f"Graphs/{filename}"
+        f"Comparison_Graphs/{filename}"
 
     )
 
     plt.close()
 
 # =========================================================
-# DRAW PoW GRAPHS
+# 1. WINNER MINERS GRAPH
 # =========================================================
 
-draw_pow_graph(
+draw_graph(
 
-    pow_mining_time_history,
-    "Mining Time (sec)",
-    "PoW Mining Time vs Time",
-    "pow_mining_time.png"
+    time_axis,
 
-)
+    results["Winner_Miners"],
 
-draw_pow_graph(
+    "Time (sec)",
 
-    pow_nonce_history,
-    "Nonce",
-    "PoW Nonce vs Time",
-    "pow_nonce.png"
+    "Winner Miners",
 
-)
+    "Winner Miners vs Time",
 
-draw_pow_graph(
-
-    pow_hashrate_history,
-    "Hashrate",
-    "PoW Hashrate vs Time",
-    "pow_hashrate.png"
+    "winner_miners.png"
 
 )
 
 # =========================================================
-# FINAL PoW RESULTS
+# 2. SOCIAL WELFARE GRAPH
+# =========================================================
+
+draw_graph(
+
+    time_axis,
+
+    results["Social_Welfare"],
+
+    "Time (sec)",
+
+    "Social Welfare",
+
+    "Social Welfare vs Time",
+
+    "social_welfare.png"
+
+)
+
+# =========================================================
+# 3. RESOURCE UTILIZATION GRAPH
+# =========================================================
+
+draw_graph(
+
+    time_axis,
+
+    results["Resource_Utilization"],
+
+    "Time (sec)",
+
+    "Resource Utilization",
+
+    "Resource Utilization vs Time",
+
+    "resource_utilization.png"
+
+)
+
+# =========================================================
+# 4. CONNECTIVITY RATIO GRAPH
+# =========================================================
+
+draw_graph(
+
+    time_axis,
+
+    results["Connectivity_Ratio"],
+
+    "Time (sec)",
+
+    "Connectivity Ratio",
+
+    "Connectivity Ratio vs Time",
+
+    "connectivity_ratio.png"
+
+)
+
+# =========================================================
+# 5. RUNNER-UP MINERS GRAPH
+# =========================================================
+
+runnerups = (
+
+    1000
+
+    -
+
+    results["Winner_Miners"]
+
+)
+
+draw_graph(
+
+    time_axis,
+
+    runnerups,
+
+    "Time (sec)",
+
+    "Runner-Up Miners",
+
+    "Runner-Up Miners vs Time",
+
+    "runnerup_miners.png"
+
+)
+
+# =========================================================
+# BAR GRAPH FOR AVERAGE COMPARISON
+# =========================================================
+
+average_metrics = {
+
+    "Winner Miners":
+
+    np.mean(results["Winner_Miners"]),
+
+    "Social Welfare":
+
+    np.mean(results["Social_Welfare"]),
+
+    "Resource Utilization":
+
+    np.mean(results["Resource_Utilization"]),
+
+    "Connectivity Ratio":
+
+    np.mean(results["Connectivity_Ratio"]),
+
+    "Runner-Up Miners":
+
+    np.mean(runnerups)
+
+}
+
+# =========================================================
+# BAR GRAPH
+# =========================================================
+
+plt.figure(figsize=(12,6))
+
+plt.bar(
+
+    average_metrics.keys(),
+
+    average_metrics.values()
+
+)
+
+plt.ylabel("Average Value")
+
+plt.title("Average Performance Comparison")
+
+plt.xticks(rotation=10)
+
+plt.grid(True)
+
+plt.tight_layout()
+
+plt.savefig(
+
+    "Comparison_Graphs/average_comparison.png"
+
+)
+
+plt.close()
+
+# =========================================================
+# MULTI-LINE COMPARISON GRAPH
+# =========================================================
+
+plt.figure(figsize=(14,7))
+
+plt.plot(
+
+    time_axis,
+
+    results["Winner_Miners"],
+
+    marker='o',
+
+    label="Winner Miners"
+
+)
+
+plt.plot(
+
+    time_axis,
+
+    results["Social_Welfare"],
+
+    marker='s',
+
+    label="Social Welfare"
+
+)
+
+plt.plot(
+
+    time_axis,
+
+    results["Resource_Utilization"],
+
+    marker='^',
+
+    label="Resource Utilization"
+
+)
+
+plt.plot(
+
+    time_axis,
+
+    results["Connectivity_Ratio"],
+
+    marker='d',
+
+    label="Connectivity Ratio"
+
+)
+
+plt.xlabel("Time (sec)")
+
+plt.ylabel("Values")
+
+plt.title("Overall System Performance Comparison")
+
+plt.legend()
+
+plt.grid(True)
+
+plt.tight_layout()
+
+plt.savefig(
+
+    "Comparison_Graphs/overall_comparison.png"
+
+)
+
+plt.close()
+
+# =========================================================
+# PRINT OUTPUT
 # =========================================================
 
 print("\n====================================")
-print("PoW FINAL RESULTS")
+
+print("GRAPH GENERATION COMPLETED")
+
 print("====================================")
 
-print(
-    "Average Mining Time:",
-    round(np.mean(pow_mining_time_history), 4)
-)
+print("\nGenerated Graphs:")
+
+print("\n1. winner_miners.png")
+
+print("2. social_welfare.png")
+
+print("3. resource_utilization.png")
+
+print("4. connectivity_ratio.png")
+
+print("5. runnerup_miners.png")
+
+print("6. average_comparison.png")
+
+print("7. overall_comparison.png")
+
+print("\nAll graphs saved in:")
+
+print("Comparison_Graphs/")
+
+# =====================================================
+# COMBINED RESULT GRAPHS
+# =====================================================
+
+import matplotlib.pyplot as plt
+
+time_axis = results_df["Time"]
+
+graphs = [
+
+    (
+        "Connectivity_Ratio",
+        "Connectivity Ratio Over Time",
+        "Connectivity Ratio",
+        "connectivity_ratio.png"
+    ),
+
+    (
+        "Runnerup_Miners",
+        "Runner-Up Miners Over Time",
+        "Runner-Up Miners",
+        "runnerup_miners.png"
+    ),
+
+    (
+        "Average_Connected_Servers",
+        "Average Connected Servers Over Time",
+        "Connected Servers",
+        "average_connected_servers.png"
+    ),
+
+    (
+        "Average_Priority",
+        "Average Priority Score Over Time",
+        "Priority Score",
+        "priority_score.png"
+    ),
+
+    (
+        "Average_Final_Score",
+        "Average Final Score Over Time",
+        "Final Score",
+        "final_score.png"
+    ),
+
+    (
+        "Success_Rate",
+        "Allocation Success Rate Over Time",
+        "Success Rate (%)",
+        "success_rate.png"
+    )
+
+]
+
+for column, title, ylabel, filename in graphs:
+
+    plt.figure(figsize=(12,6))
+
+    plt.plot(
+        time_axis,
+        results_df[column],
+        marker='o',
+        linewidth=2
+    )
+
+    plt.title(title)
+    plt.xlabel("Time (sec)")
+    plt.ylabel(ylabel)
+
+    plt.grid(
+        True,
+        linestyle='--',
+        alpha=0.7
+    )
+
+    plt.tight_layout()
+
+    plt.savefig(
+        f"Comparison_Graphs/{filename}",
+        dpi=300
+    )
+
+    plt.show()
+
+    plt.close()
 
 print(
-    "Average Nonce:",
-    round(np.mean(pow_nonce_history), 2)
+    "\nAdditional Result Graphs Generated Successfully"
 )
-
-print(
-    "Average Hashrate:",
-    round(np.mean(pow_hashrate_history), 2)
-)
-
-print("\n====================================")
-print("PoW CONSENSUS COMPLETED")
-print("====================================")
